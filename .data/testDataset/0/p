@@ -1,0 +1,5 @@
+p
+{
+    type            uniform;
+    value           uniform 0;
+}
