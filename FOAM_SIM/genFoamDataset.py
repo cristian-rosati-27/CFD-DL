@@ -4,6 +4,7 @@ import shutil
 import subprocess
 from math import cos, sin, radians
 
+
 def create_case_directory(base_case, case_dir):
     """Crea una nuova directory per il caso"""
     if os.path.exists(case_dir):
