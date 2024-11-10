@@ -1,0 +1,24 @@
+COMANDI OPENFOAM
+
+Per creare il parallelepipedo che contiene l'oggetto (volume da simulare)
+-> blockMesh
+
+Per creare la mesh sulla superficie dell'oggetto (il punto locationInMesh deve stare fuori dal razzo e dentro la blockMesh, altrimenti simula il fluso dentro il razzo anzi che fuori) 
+-> surfaceFeatures
+-> snappyHexMesh -overwrite
+
+Per verificare che non ci siano errori sulla mesh
+-> checkMesh
+
+Per lanciare la simulazione
+-> rhoCentralFoam
+
+Per creare i file vtk visualizzabili da paraview con i dati simulati:
+-> foamToVTK
+
+----------------------------------------------------------------------------
+
+Per simulare in parallelo dopo aver scritto il file decomposeParDict
+-> decomposePar
+-> mpirun -np 6 rhoCentralFoam -parallel
+-> reconstructPar
