@@ -23,17 +23,17 @@ NFEATURES = 10  # p, vel, stress
 
 ### HYPERPARAMETERS
 
-EPOCHS = 30
-BATCH_SIZE = 2
+EPOCHS = 10
+BATCH_SIZE = 1
 INPUT_SIZE = 8 # <- only for reference
 EDGE_LMAX = 1
 NODE_LMAX = 1
 HIDDEN_LMAX = 1
-NUM_LAYERS = 1
+NUM_LAYERS = 16
 TASK = 'node'
 NORM = 'batch'
 OUTPUT_SIZE = 4
-HIDDEN_SIZE= 16
+HIDDEN_SIZE= 256
 NEIGHBOURS = 3 # 10 for moebius data
 SUBSAMPLE_DATASET = 1
 OPT = 'Adam'
@@ -60,4 +60,4 @@ if DATASET == 1:
     NFRAME = 1 
 
     DATADIR = os.path.join("../.data/Extracted_data")
-    NSIM = 10
+    NSIM = 40
