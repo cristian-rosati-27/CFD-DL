@@ -1,0 +1,69 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+
+solvers
+{
+    p
+    {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-6;
+        relTol          0.01;
+    }
+
+    U
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
+        nSweeps         1;
+    }
+
+    "(k|epsilon|omega|nuTilda)"
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
+        nSweeps         1;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 5;
+    consistent      yes;
+
+    residualControl
+    {
+        p               1e-3;
+        U               1e-3;
+    }
+
+    pRefCell        0;     // Aggiunto: cella di riferimento per la pressione
+    pRefValue       0;     // Aggiunto: valore di riferimento della pressione
+}
+
+relaxationFactors
+{
+    fields
+    {
+        p               0.1;        // Ridotto da 0.3
+    }
+    equations
+    {
+        U               0.5;        // Ridotto da 0.7
+    }
+}
+
+cache
+{
+    grad(U);
+}

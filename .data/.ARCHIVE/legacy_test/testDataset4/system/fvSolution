@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  12                                    |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                     |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "(rho|rhoU|rhoE)"
+    {
+        solver          diagonal;
+        tolerance       1e-6;      // Puoi essere meno stringente
+        relTol          1e-3;      // Aumenta la tolleranza relativa
+    }
+
+    "(U|e)"
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-08;
+        relTol          0.1;
+        nSweeps         1;
+    }
+
+    UFinal
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-08;
+        relTol          0;
+        nSweeps         1;
+    }
+
+    eFinal
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-08;
+        relTol          0;
+        nSweeps         1;
+    }
+
+    rhoFinal
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-6;
+        relTol          0;
+    }
+
+    p
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-6;
+        relTol          0;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    nOuterCorrectors    1;     // Riduci se possibile
+    nCorrectors         1;
+    nNonOrthogonalCorrectors 0;
+}
+
+relaxationFactors
+{
+    equations
+    {
+        ".*"            0.7;    // Valore tra 0.7 e 0.9
+    }
+}

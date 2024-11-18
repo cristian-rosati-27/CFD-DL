@@ -1,0 +1,125 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+
+// Flags for optional mesh operations
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+geometry
+{
+    rocket
+    {
+        type triSurfaceMesh;
+        file "rocket.stl";
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 100000;
+    maxGlobalCells 2000000;
+    minRefinementCells 0;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
+    allowFreeStandingZoneFaces true;    // Aggiunto questo parametro
+    features
+    (
+        {
+            file "rocket.eMesh";
+            level 2;
+        }
+    );
+    
+    refinementSurfaces
+    {
+        rocket
+        {
+            level (2 3);
+        }
+    }
+
+    refinementRegions
+    {
+        rocket
+        {
+            mode inside;
+            levels ((1 2));
+        }
+    }
+
+    locationInMesh (0 0 0);
+}
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 4.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+    nFeatureSnapIter 10;
+}
+
+addLayersControls
+{
+    relativeSizes true;
+	layers
+	{
+		rocket        // Questo deve corrispondere al nome nella sezione geometry
+		{
+			nSurfaceLayers 5;
+		}
+	}
+    expansionRatio 1.2;
+    finalLayerThickness 0.3;
+    minThickness 0.1;
+    nGrow 0;
+    featureAngle 60;
+    slipFeatureAngle 30;
+    nRelaxIter 5;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals 3;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedialAxisAngle 90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 50;
+    nRelaxedIter 20;
+}
+
+meshQualityControls
+{
+    maxNonOrtho 65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    minVol 1e-13;
+    minTetQuality 1e-15;
+    minArea -1;
+    minTwist 0.02;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+    nSmoothScale 4;
+    errorReduction 0.75;
+    relaxed
+    {
+        maxNonOrtho 75;
+    }
+}
+
+writeFlags
+(
+    scalarLevels
+    layerFields
+);
+
+mergeTolerance 1e-6;
