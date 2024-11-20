@@ -584,6 +584,131 @@ class Graph_dataset_with_equiv_features(Dataset):
 
 
 
+# it implements the method described in the "equiv_features" function above,
+# plus some other minor redistribution of features
+class Graph_dataset_with_equiv_features_and_input(Dataset):
+
+  def __init__(self, root, transform=None, pre_transform=None, pre_filter=None, inlet_mask = False):
+
+    """ Root: where the dataset should be stored """
+    super().__init__(root, transform, pre_transform, pre_filter)
+
+    self.inlet_mask = inlet_mask
+    
+  @property
+  def raw_file_names(self):
+    return 'Dataset.pt'
+
+  @property
+  def processed_file_names(self):
+
+    self.data = torch.load(os.path.join(self.raw_dir,'Dataset.pt'))
+
+    return [f'data_{i}.pt' for i in trange(self.data.shape[0])]
+
+  
+  def download(self):
+    """ not implemented; it acts if property "raw_file_names" doesn't find the specified file """
+    pass
+
+  
+  def process(self):
+    """ it acts if property "processed_file_names" doesn't find the specified list of files in given path
+        the code is written so that once "process" acts, it isn't executed anymore in future calls to Graph_dataset_with_equiv_features
+    """
+
+    # "Dataset.pt" has shape [NxM,F] where:
+    # - N is the number of nodes in a graph
+    # - M is the number of simulations (steady states)
+    # - F is the number of features per node
+    # Here F has 16 components: [x,y,z,SDF,MIS,label,P,Vx,Vy,Vz,Sxx,Syy,Szz,Sxy,Sxz,Syz]
+    self.data = torch.load(os.path.join(self.raw_dir,'Dataset.pt'))
+    
+    for i, graph in enumerate(tqdm(self.data)):
+
+      # 3D coordinates are unpacked in node_pos variable
+      node_pos = graph[..., :3].detach().clone()
+      # print(f"Node pos: {node_pos.shape}")
+      node_mis = graph[..., 4].detach().clone()
+      # components 3,4 correspond to SDF and MIS, now stored in node_geom_features1
+      # we are excluding positions (first three components) from node features
+      node_geom_features1 = graph[..., 3:5].detach().clone()
+      # component 5 is the categorical label; 0 for inlet nodes, 1 for outlet nodes and 2 for fluid nodes
+      # the labels are then one-hot encoded in 3 classes ("num_classes"): 0 -> [1,0,0], 1 -> [0,1,0], 2 -> [0,0,1]
+      labels = graph[..., 5].detach().clone().to(torch.int64)
+      node_geom_features2 = F.one_hot(labels, num_classes=3)
+      #print(f"Labels: {str(labels.tolist())}")
+      # here are stored all 3D coordiantes (including inlet and outlet), and categorical labels
+      original_pos_plus_labels = torch.cat((node_pos, labels.unsqueeze(-1)), dim = -1)
+      # print(f"Original pos plus labels: {original_pos_plus_labels.shape}")
+      # SDF, MIS and the one-hot encoding are concatenated to create new 5D feature vector with geometric information
+      node_geom_features = torch.cat((node_geom_features1, node_geom_features2), dim=-1)
+      # print(f"Node geom features: {node_geom_features.shape}")
+      # physical features that we want to predict as output are sliced separately
+      # "6:10" is ignoring stress tensor, only P,V are extracted - changed to 7:10 to ignore P too
+      node_phys_features = graph[..., 6:10].detach().clone()
+      # print(f"Node phys features: {node_phys_features.shape}")
+      node_phys_features_and_mis = torch.cat((graph[..., 7:10].detach().clone(), node_mis.unsqueeze(-1)), dim=1)
+
+      # produce equivariant input features vectors with "equiv_features" function (see above)
+      # (you do NOT need this preprocessing for SEGNN to work)
+      # print(f"len of node_pos: {len(node_pos)}")
+      # print(f"len of node_geom_features: {len(node_geom_features)}")
+      input_features = equiv_features(node_pos, node_geom_features)
+      # print(f"Input features: {input_features.shape}")
+      # print(f"len of input_features: {len(input_features)}")
+      # print(self.inlet_mask)
+      # if self.inlet_mask == False:
+      if False:
+
+        # Use simple tensor as placeholder for nodes attributes 
+        # node_attr = torch.ones(node_pos.shape[0],1)
+        # node_attr = node_geom_features
+        
+        # this way node attributes are the same type of the node coordinate ([x,y,z], a 3D vector)
+        node_attr = node_pos
+      else:
+        # here ":2000" means only fluid nodes are considered
+        num_fluid_nodes = len(input_features)
+        #print(num_fluid_nodes)
+        padding = torch.zeros_like(node_phys_features[:num_fluid_nodes,:])
+        # print(f"Padding: {padding.shape}")
+        mask = inlet_distance_mask(original_pos_plus_labels, num_nodes=num_fluid_nodes)
+        padding[mask] = node_phys_features[:num_fluid_nodes,...][mask]
+        # this way node attributes are the same type of the node_phys features (here [P,vx,vy,vz], a scalar and a 3D vector
+        node_attr = padding
+        
+      # Use simple tensor as placeholder for nodes attributes 
+      # node_attr = torch.ones(node_pos.shape[0],1)
+
+      # (unsure about this choice at the moment, have to check it later)
+      # node_attr = node_geom_features
+      
+      # here ":2000" means only fluid nodes are stored (here inlet and outlet nodes
+      #  are only used to compute "input features" and then discarded)
+      data = Data(x = input_features, pos = node_pos[:num_fluid_nodes,...], node_attr = node_attr[:num_fluid_nodes,...], 
+                  edge_index = None, y = node_phys_features[:num_fluid_nodes,...], original_pos_plus_labels = original_pos_plus_labels, mask = mask)
+      
+      torch.save(data, os.path.join(self.processed_dir, f'data_{i}.pt'))
+
+  def len(self):        
+    return self.data.shape[0]
+
+
+  def get(self, idx):
+    """ Equivalent to __getitem__ in pytorch 
+        it retrieves the graph corresponding to the required index
+    """ 
+
+    sample = torch.load(os.path.join(self.processed_dir, f'data_{idx}.pt'))
+
+    return sample
+
+
+
+
+
+
 class Normalizer(nn.Module):
   """ Class used to accumulate node features' statistics during training
       this function is deprecated here, it does not take into account the 

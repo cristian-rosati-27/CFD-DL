@@ -16,7 +16,11 @@ SPACING = 0.0008
 NFRAME = 6 # depends on the saving frequency of probes, usually 1
 
 NPOS = 6  # pos, mis, sdf, size (2 if fluid_node, 1 if outlet_node, 0 if inlet_node)
-NFEATURES = 10  # p, vel, stress
+NFEATURES = 10  # p, vel, stress # TOGLI COLONNE NULLE
+
+# introduzione e stato dell'arte in ambito aerospaziale (motivazione!!)
+# prima pagina abstract introduzione e una colonnad istato dell'arte
+###
 
 # NPOS SHOULD BE 6 VALUES (npy file) -> x, y, z, mis, sdf, size (2 if fluid_node, 1 if outlet_node, 0 if inlet_node)
 # NFEATURES SHOULD BE 10 VALUES (npz file with each feature as an array for all the nodes of that sim) -> p, vel_x, vel_y, vel_z, stress_xx, stress_xy, stress_yy, stress_xz, stress_yz, stress_zz
@@ -34,7 +38,7 @@ TASK = 'node'
 NORM = 'batch'
 OUTPUT_SIZE = 4
 HIDDEN_SIZE= 128
-NEIGHBOURS = 3 # 10 for moebius data
+NEIGHBOURS = 10 # 10 for moebius data
 SUBSAMPLE_DATASET = 1
 OPT = 'Adam'
 # SCHEDULER = 'ExponentialLR' 
