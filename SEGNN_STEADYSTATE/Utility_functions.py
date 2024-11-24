@@ -497,7 +497,7 @@ class Graph_dataset_with_equiv_features(Dataset):
     # - N is the number of nodes in a graph
     # - M is the number of simulations (steady states)
     # - F is the number of features per node
-    # Here F has 16 components: [x,y,z,SDF,MIS,label,P,Vx,Vy,Vz,Sxx,Syy,Szz,Sxy,Sxz,Syz]
+    # Here F has 16 components: [x,y,z,SDF,MIS,label, P,Vx,Vy,Vz,Sxx,Syy,Szz,Sxy,Sxz,Syz]
     self.data = torch.load(os.path.join(self.raw_dir,'Dataset.pt'))
     
     for i, graph in enumerate(tqdm(self.data)):
@@ -521,10 +521,13 @@ class Graph_dataset_with_equiv_features(Dataset):
       node_geom_features = torch.cat((node_geom_features1, node_geom_features2), dim=-1)
       # print(f"Node geom features: {node_geom_features.shape}")
       # physical features that we want to predict as output are sliced separately
-      # "6:10" is ignoring stress tensor, only P,V are extracted - changed to 7:10 to ignore P too
+      # "6:10" is ignoring stress tensor, only P,V are extracted
       node_phys_features = graph[..., 6:10].detach().clone()
       # print(f"Node phys features: {node_phys_features.shape}")
       node_phys_features_and_mis = torch.cat((graph[..., 7:10].detach().clone(), node_mis.unsqueeze(-1)), dim=1)
+
+      # cfd initial conditions (V, angle, 0)
+      initial_conditions = graph[..., -3:].detach().clone()
 
       # produce equivariant input features vectors with "equiv_features" function (see above)
       # (you do NOT need this preprocessing for SEGNN to work)
@@ -562,8 +565,16 @@ class Graph_dataset_with_equiv_features(Dataset):
       
       # here ":2000" means only fluid nodes are stored (here inlet and outlet nodes
       #  are only used to compute "input features" and then discarded)
-      data = Data(x = input_features, pos = node_pos[:num_fluid_nodes,...], node_attr = node_attr[:num_fluid_nodes,...], 
-                  edge_index = None, y = node_phys_features[:num_fluid_nodes,...], original_pos_plus_labels = original_pos_plus_labels, mask = mask)
+
+      input_features_with_ic = torch.cat((input_features.detach().clone(), initial_conditions), dim=1)
+
+      data = Data(x = input_features_with_ic,
+                  pos = node_pos[:num_fluid_nodes,...],
+                  node_attr = node_attr[:num_fluid_nodes,...], 
+                  edge_index = None,
+                  y = node_phys_features[:num_fluid_nodes,...],
+                  original_pos_plus_labels = original_pos_plus_labels,
+                  mask = mask)
       
       torch.save(data, os.path.join(self.processed_dir, f'data_{i}.pt'))
 

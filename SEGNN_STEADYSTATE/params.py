@@ -27,7 +27,7 @@ NFEATURES = 10  # p, vel, stress # TOGLI COLONNE NULLE
 
 ### HYPERPARAMETERS
 
-EPOCHS = 10
+EPOCHS = 30
 BATCH_SIZE = 1
 INPUT_SIZE = 8 # <- only for reference
 EDGE_LMAX = 1
@@ -41,11 +41,13 @@ HIDDEN_SIZE= 128
 NEIGHBOURS = 10 # 10 for moebius data
 SUBSAMPLE_DATASET = 1
 OPT = 'Adam'
-# SCHEDULER = 'ExponentialLR' 
-SCHEDULER = None 
+SCHEDULER = 'ReduceLROnPlateau' # 'ExponentialLR' # None 
+LEARNING_RATE= 3e-3 # 5e-5
 if SCHEDULER == 'ExponentialLR':
     GAMMA = 0.95 # 0.8317 25 epochs, 0.8913 40 epochs 0.9261 60 epoch
-LEARNING_RATE= 3e-3 # 5e-5
+if SCHEDULER == 'ReduceLROnPlateau':
+    PATIENCE = 2
+    FACTOR = LEARNING_RATE*0.1
 DEVICE = dev
 EARLY_STOP = EPOCHS
 
@@ -64,4 +66,4 @@ if DATASET == 1:
     NFRAME = 1 
 
     DATADIR = os.path.join("../.data/Extracted_data")
-    NSIM = 40
+    NSIM = 10
