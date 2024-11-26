@@ -27,17 +27,17 @@ NFEATURES = 10  # p, vel, stress # TOGLI COLONNE NULLE
 
 ### HYPERPARAMETERS
 
-EPOCHS = 30
+EPOCHS = 100
 BATCH_SIZE = 1
-INPUT_SIZE = 8 # <- only for reference
+INPUT_SIZE = 11 # <- only for reference
 EDGE_LMAX = 1
 NODE_LMAX = 1
 HIDDEN_LMAX = 1
-NUM_LAYERS = 8
+NUM_LAYERS = 1
 TASK = 'node'
 NORM = 'batch'
 OUTPUT_SIZE = 4
-HIDDEN_SIZE= 128
+HIDDEN_SIZE= 6
 NEIGHBOURS = 10 # 10 for moebius data
 SUBSAMPLE_DATASET = 1
 OPT = 'Adam'
@@ -47,7 +47,7 @@ if SCHEDULER == 'ExponentialLR':
     GAMMA = 0.95 # 0.8317 25 epochs, 0.8913 40 epochs 0.9261 60 epoch
 if SCHEDULER == 'ReduceLROnPlateau':
     PATIENCE = 2
-    FACTOR = LEARNING_RATE*0.1
+    FACTOR = 0.1 # new_lr = lr * factor
 DEVICE = dev
 EARLY_STOP = EPOCHS
 
