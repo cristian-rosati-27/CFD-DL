@@ -1,5 +1,6 @@
 .data/case_*
 .data/.ARCHIVE/initial_tests
+.data/Dataset_*
 __pycache__
 */__pycache__
 SEGNN_STEADYSTATE/wandb

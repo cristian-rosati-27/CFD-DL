@@ -27,7 +27,7 @@ NFEATURES = 10  # p, vel, stress # TOGLI COLONNE NULLE
 
 ### HYPERPARAMETERS
 
-EPOCHS = 100
+EPOCHS = 10
 BATCH_SIZE = 1
 INPUT_SIZE = 11 # <- only for reference
 EDGE_LMAX = 1
@@ -57,7 +57,7 @@ MODEL_DIR = os.path.join("../.data/.SEGNN_MODEL")
 
 ### DATASET
 
-DATASET = 1
+DATASET = 3
 
 if DATASET == 1:
     NFLUID_PROBES = 848
@@ -66,4 +66,22 @@ if DATASET == 1:
     NFRAME = 1 
 
     DATADIR = os.path.join("../.data/Extracted_data")
+    NSIM = 40
+
+if DATASET == 2:
+    NFLUID_PROBES = 848
+    NIO_PROBES = 0
+    INLET_ID = 0  # inlet id
+    NFRAME = 1 
+
+    DATADIR = os.path.join("../.data/Dataset_10sims")
     NSIM = 10
+
+if DATASET == 3:
+    NFLUID_PROBES = 848
+    NIO_PROBES = 0
+    INLET_ID = 0  # inlet id
+    NFRAME = 1 
+
+    DATADIR = os.path.join("../.data/Dataset_50sims")
+    NSIM = 50
