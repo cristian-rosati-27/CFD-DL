@@ -7,6 +7,37 @@ from tqdm import tqdm, trange
 import os
 import plotly.graph_objects as go
 import numpy as np
+import json
+
+
+
+
+
+
+
+def denormalize_predictions(columns, params_path): 
+    
+    with open(params_path, 'r') as f:
+        normalization_params = json.load(f)
+    
+    denormalized_columns = {}
+
+    for column_name, column_data in columns.items():
+        
+        col_min_key = f"{column_name}_min"
+        col_max_key = f"{column_name}_max"
+        
+        col_min = normalization_params.get(col_min_key)
+        col_max = normalization_params.get(col_max_key)
+        
+        if col_min is None or col_max is None:
+            raise ValueError(f"Parametri mancanti per la colonna '{column_name}'.")
+        
+        # denormalize: x = norm * (max - min) + min
+        denormalized_columns[column_name] = column_data * (col_max - col_min) + col_min
+
+    return denormalized_columns
+
 
 
 
@@ -136,19 +167,19 @@ def print_3D_graph(nodes, edges = None, color = "royalblue", rescale = False, co
 
 
 
-def manual_print_3D_graph(nodes, edges = None, color = "royalblue", rescale = False, colorscale = 'turbo'):
+def manual_print_3D_graph(nodes, edges = None, color = "royalblue", rescale = False, colorscale = 'turbo', cmin=None, cmax=None):
     """ Utility plot function 
         how to use it: print_3D_graph(pos, edge_index, colors) 
         needs fig.show() to plot
     """
     
-    if rescale == True:
-        cmin = color.min().item()#float()
-        cmax = color.max().item()#float()
-        # print(cmin.dtype,cmax.dtype)
-    else:
-        cmin = None
-        cmax = None
+    # if rescale == True:
+    #     cmin = color.min().item()#float()
+    #     cmax = color.max().item()#float()
+    #     # print(cmin.dtype,cmax.dtype)
+    # else:
+    #     cmin = None
+    #     cmax = None
 
     trace1 = go.Scatter3d(
         x=nodes[:,0],
@@ -512,6 +543,7 @@ class Graph_dataset_with_equiv_features(Dataset):
       # component 5 is the categorical label; 0 for inlet nodes, 1 for outlet nodes and 2 for fluid nodes
       # the labels are then one-hot encoded in 3 classes ("num_classes"): 0 -> [1,0,0], 1 -> [0,1,0], 2 -> [0,0,1]
       labels = graph[..., 5].detach().clone().to(torch.int64)
+      # print(labels)
       node_geom_features2 = F.one_hot(labels, num_classes=3)
       #print(f"Labels: {str(labels.tolist())}")
       # here are stored all 3D coordiantes (including inlet and outlet), and categorical labels
@@ -782,3 +814,4 @@ class Normalizer(nn.Module):
         # stop accumulating after a million updates, to prevent accuracy/memory issues
         self._accumulate(batched_data)
     return (batched_data - self._mean()) / self._std_with_epsilon()
+  

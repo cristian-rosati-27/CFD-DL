@@ -33,11 +33,11 @@ INPUT_SIZE = 11 # <- only for reference
 EDGE_LMAX = 1
 NODE_LMAX = 1
 HIDDEN_LMAX = 1
-NUM_LAYERS = 1
+NUM_LAYERS = 4
 TASK = 'node'
 NORM = 'batch'
 OUTPUT_SIZE = 4
-HIDDEN_SIZE= 6
+HIDDEN_SIZE= 64
 NEIGHBOURS = 10 # 10 for moebius data
 SUBSAMPLE_DATASET = 1
 OPT = 'Adam'
@@ -74,8 +74,8 @@ if DATASET == 2:
     INLET_ID = 0  # inlet id
     NFRAME = 1 
 
-    DATADIR = os.path.join("../.data/Dataset_10sims")
-    NSIM = 10
+    DATADIR = os.path.join("../.data/Dataset_50sims")
+    NSIM = 50
 
 if DATASET == 3:
     NFLUID_PROBES = 848
@@ -83,5 +83,5 @@ if DATASET == 3:
     INLET_ID = 0  # inlet id
     NFRAME = 1 
 
-    DATADIR = os.path.join("../.data/Dataset_50sims")
-    NSIM = 50
+    DATADIR = os.path.join("../.data/Dataset_75sims")
+    NSIM = 75
